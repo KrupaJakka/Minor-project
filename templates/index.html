@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CampusGPT - AI Learning Assistant</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+
+<body>
+
+    <!-- =========================================================
+         SIDEBAR
+    ========================================================== -->
+
+    <aside class="sidebar">
+
+        <!-- LOGO -->
+
+        <div class="logo">
+
+            <div class="logo-icon">
+                🎓
+            </div>
+
+            <div>
+                <h2>CampusGPT</h2>
+
+                <p>
+                    AI Learning Assistant
+                </p>
+            </div>
+
+        </div>
+
+
+        <!-- DOCUMENT UPLOAD -->
+
+        <div class="sidebar-section">
+
+            <h3>DOCUMENT</h3>
+
+            <form action="/upload"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  id="uploadForm">
+
+                <label class="upload-box">
+
+                    <input
+                        type="file"
+                        name="pdf"
+                        id="pdfInput"
+                        accept=".pdf"
+                        required
+                    >
+
+                    <span class="upload-icon">
+                        📄
+                    </span>
+
+                    <span class="upload-title">
+                        Upload PDF
+                    </span>
+
+                    <span class="upload-subtitle"
+                          id="fileName">
+                        Click to choose a PDF
+                    </span>
+
+                </label>
+
+
+                <button
+                    type="submit"
+                    class="upload-btn"
+                    id="uploadBtn">
+
+                    <span id="uploadBtnText">
+                        Upload Document
+                    </span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- DOCUMENT INFORMATION -->
+
+        <div class="sidebar-section document-info">
+
+            <h3>ABOUT</h3>
+
+            <p>
+                CampusGPT answers questions using information
+                from your uploaded PDF documents.
+            </p>
+
+
+            <div class="feature">
+
+                <span>✓</span>
+
+                <span>
+                    PDF-based answers
+                </span>
+
+            </div>
+
+
+            <div class="feature">
+
+                <span>✓</span>
+
+                <span>
+                    AI-powered search
+                </span>
+
+            </div>
+
+
+            <div class="feature">
+
+                <span>✓</span>
+
+                <span>
+                    Source citations
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="sidebar-footer">
+
+            <span>
+                Powered by
+            </span>
+
+            <strong>
+                Gemini + FAISS
+            </strong>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+    ========================================================== -->
+
+    <main class="main">
+
+
+        <!-- HEADER -->
+
+        <header class="header">
+
+            <div>
+
+                <h1>
+                    CampusGPT
+                </h1>
+
+                <p>
+                    Ask questions about your uploaded documents
+                </p>
+
+            </div>
+
+
+            <div class="status">
+
+                <span class="status-dot"></span>
+
+                AI Ready
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =====================================================
+             CHAT CONTAINER
+        ====================================================== -->
+
+        <section class="chat-container"
+                 id="chatContainer">
+
+
+            <!-- SYSTEM MESSAGE -->
+
+            {% if message %}
+
+            <div class="system-message">
+
+                <span class="system-icon">
+                    ℹ️
+                </span>
+
+                {{ message }}
+
+            </div>
+
+            {% endif %}
+
+
+
+            <!-- =================================================
+                 WELCOME SCREEN
+            ================================================== -->
+
+            {% if not question and not answer %}
+
+            <div class="welcome">
+
+                <div class="welcome-icon">
+                    🤖
+                </div>
+
+
+                <h2>
+                    Hello! I'm CampusGPT
+                </h2>
+
+
+                <p>
+                    Upload a PDF and ask me anything about its content.
+                </p>
+
+
+                <!-- SUGGESTED QUESTIONS -->
+
+                <div class="suggestions">
+
+                    <button
+                        type="button"
+                        onclick="setQuestion('What is Machine Learning?')">
+
+                        <span>💡</span>
+
+                        What is Machine Learning?
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        onclick="setQuestion('Explain the main concepts')">
+
+                        <span>📚</span>
+
+                        Explain the main concepts
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        onclick="setQuestion('Summarize this document')">
+
+                        <span>📝</span>
+
+                        Summarize this document
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+
+
+            <!-- =================================================
+                 USER QUESTION
+            ================================================== -->
+
+            {% if question %}
+
+            <div class="chat-message user-message">
+
+                <div class="avatar user-avatar">
+                    👤
+                </div>
+
+
+                <div class="message-content">
+
+                    <div class="message-label">
+                        You
+                    </div>
+
+
+                    <div class="message-bubble user-bubble">
+
+                        {{ question }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+
+
+            <!-- =================================================
+                 AI ANSWER
+            ================================================== -->
+
+            {% if answer %}
+
+            <div class="chat-message bot-message">
+
+                <div class="avatar bot-avatar">
+                    🤖
+                </div>
+
+
+                <div class="message-content">
+
+                    <div class="message-label">
+                        CampusGPT
+                    </div>
+
+
+                    <div class="message-bubble bot-bubble">
+
+                        <div class="answer">
+
+                            {{ answer | replace('\n', '<br>') | safe }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+
+
+            <!-- =================================================
+                 LOADING MESSAGE
+            ================================================== -->
+
+            <div
+                id="loadingMessage"
+                class="loading-message"
+                style="display: none;">
+
+                <div class="avatar bot-avatar">
+                    🤖
+                </div>
+
+
+                <div class="loading-content">
+
+                    <div class="message-label">
+                        CampusGPT
+                    </div>
+
+
+                    <div class="loading-bubble">
+
+                        <span></span>
+                        <span></span>
+                        <span></span>
+
+                        <p>
+                            Thinking...
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 QUESTION AREA
+            ================================================== -->
+
+            <div class="question-area">
+
+
+                <form
+                    action="/ask"
+                    method="POST"
+                    class="question-form"
+                    id="questionForm">
+
+
+                    <input
+                        type="text"
+                        name="question"
+                        id="question"
+                        placeholder="Ask a question about your PDF..."
+                        autocomplete="off"
+                        required
+                    >
+
+
+                    <button
+                        type="submit"
+                        id="sendButton">
+
+                        <span>
+                            Send
+                        </span>
+
+                        <span>
+                            ➤
+                        </span>
+
+                    </button>
+
+                </form>
+
+
+                <p class="privacy-text">
+
+                    🔒 CampusGPT answers using your uploaded
+                    document context.
+
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================== -->
+
+    <script>
+
+
+        /* ======================================================
+           SUGGESTED QUESTION
+        ======================================================= */
+
+        function setQuestion(question) {
+
+            const questionInput =
+                document.getElementById("question");
+
+            questionInput.value = question;
+
+            questionInput.focus();
+
+        }
+
+
+
+        /* ======================================================
+           SHOW SELECTED PDF NAME
+        ======================================================= */
+
+        const pdfInput =
+            document.getElementById("pdfInput");
+
+        const fileName =
+            document.getElementById("fileName");
+
+
+        if (pdfInput) {
+
+            pdfInput.addEventListener("change", function () {
+
+                if (this.files.length > 0) {
+
+                    fileName.textContent =
+                        this.files[0].name;
+
+                } else {
+
+                    fileName.textContent =
+                        "Click to choose a PDF";
+
+                }
+
+            });
+
+        }
+
+
+
+        /* ======================================================
+           UPLOAD LOADING
+        ======================================================= */
+
+        const uploadForm =
+            document.getElementById("uploadForm");
+
+        const uploadBtn =
+            document.getElementById("uploadBtn");
+
+        const uploadBtnText =
+            document.getElementById("uploadBtnText");
+
+
+        if (uploadForm) {
+
+            uploadForm.addEventListener("submit", function () {
+
+                uploadBtn.disabled = true;
+
+                uploadBtnText.textContent =
+                    "Processing PDF...";
+
+            });
+
+        }
+
+
+
+        /* ======================================================
+           QUESTION FORM
+        ======================================================= */
+
+        const questionForm =
+            document.getElementById("questionForm");
+
+        const sendButton =
+            document.getElementById("sendButton");
+
+        const loadingMessage =
+            document.getElementById("loadingMessage");
+
+        const chatContainer =
+            document.getElementById("chatContainer");
+
+
+        if (questionForm) {
+
+            questionForm.addEventListener("submit", function () {
+
+                const questionInput =
+                    document.getElementById("question");
+
+
+                if (questionInput.value.trim() === "") {
+
+                    return;
+
+                }
+
+
+                /*
+                 * Disable button so the user
+                 * cannot accidentally submit
+                 * the same question multiple times.
+                 */
+
+                sendButton.disabled = true;
+
+
+                sendButton.innerHTML =
+                    "<span>Thinking...</span>";
+
+
+                /*
+                 * Display loading animation.
+                 */
+
+                loadingMessage.style.display =
+                    "flex";
+
+
+                /*
+                 * Scroll to the loading message.
+                 */
+
+                setTimeout(function () {
+
+                    loadingMessage.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                }, 100);
+
+            });
+
+        }
+
+
+
+        /* ======================================================
+           ENTER KEY
+        ======================================================= */
+
+        const questionInput =
+            document.getElementById("question");
+
+
+        if (questionInput) {
+
+            questionInput.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (event.key === "Enter") {
+
+                        event.preventDefault();
+
+                        questionForm.requestSubmit();
+
+                    }
+
+                }
+            );
+
+        }
+
+
+
+        /* ======================================================
+           SCROLL TO LATEST ANSWER
+        ======================================================= */
+
+        window.addEventListener("load", function () {
+
+            if (chatContainer) {
+
+                chatContainer.scrollTop =
+                    chatContainer.scrollHeight;
+
+            }
+
+        });
+
+
+    </script>
+
+</body>
+
+</html>
